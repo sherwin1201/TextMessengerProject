@@ -244,4 +244,5 @@ for i in range(0,paddedLength,16):
     paddedMessage[i:i+16] = EncryptAES(paddedMessage[i:i+16], key);
 
 #Printing Encrypted text
-print(" ".join(paddedMessage));
+message = " ".join(paddedMessage);
+print(message);
