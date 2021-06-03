@@ -3,6 +3,7 @@ import threading
 import tkinter
 import tkinter.scrolledtext
 from tkinter import simpledialog
+import re
 
 HOST = '127.0.0.1' # For online enter public ip address here 
 PORT = 9090  #Open the port on the server site for online
@@ -17,6 +18,9 @@ class Client:
         msg.withdraw()
         
         self.nickname = simpledialog.askstring("Nickname"," Please choose a nickname ", parent = msg )
+        #self.sock.send(self.nickname.encode('utf-8'))
+        #print(self.sock.recv(1024).decode('utf-8'))
+        
         self.gui_done = False # Like a lock that prevents unneccesary starts
         self.running = True
         
@@ -49,7 +53,7 @@ class Client:
         self.send_button.config(font=("Arial",12))
         self.send_button.pack(padx=20, pady=5)
         
-        self.gui_done = True 
+        self.gui_done = True
         self.win.protocol("WM_DELETE_WINDOW",self.stop)  #To terminate the whole program
         self.win.mainloop()
         
@@ -66,17 +70,29 @@ class Client:
         exit(0)
 
     def receive (self):
+        self.sock.send(self.nickname.encode('utf-8'))
+        print(self.sock.recv(1024).decode('utf-8'))
         while self.running:
             try:
                 message = self.sock.recv(1024).decode('utf-8')
-                if message == "NICK":
-                    self.sock.send(self.nickname.encode('utf-8'))
+                while True:
+                    if(self.gui_done):
+                        break;                
+                if re.search("Connected with.*$",message):
+                    if self.gui_done:
+                        self.sock.send("Approved".encode('utf-8'))
+                        self.text_area.config(state= 'normal')
+                        self.text_area.insert('end',message+"\n") #Inserts the message at the end 
+                        self.text_area.yview('end')
+                        self.text_area.config(state= 'disabled')
+                        #self.send_button.config(state = 'normal')
                 else:
                     if self.gui_done:
                         self.text_area.config(state= 'normal')
                         self.text_area.insert('end',message) #Inserts the message at the end 
                         self.text_area.yview('end')
                         self.text_area.config(state= 'disabled')
+                        #self.send_button.config(state = 'normal')
             except ConnectionAbortedError:
                 break
             except:
@@ -85,3 +101,5 @@ class Client:
                 break                
         
 client = Client(HOST,PORT)
+
+
