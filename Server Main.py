@@ -1,4 +1,4 @@
-import socket 
+import socket
 import threading
 
 HOST ='127.0.0.1'  # If running online entire own (private) ip address 
@@ -8,27 +8,40 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((HOST,PORT))
 server.listen()
 clients = []
-nicknames =[]
+activeUsers = []
 
-#Broadcast fn
-def broadcast(message):   #No encoding done here (The message should be encoded and passed in the fn)
-    for n in clients:
-        n.send(message)
+def waitForConnection(clientConnection):
+    while True:
+        if clientConnection.recv(1024).decode("utf-8") == "Approved":
+            break
 
+#Connect users
+def connectUsers(user1, user2):   #No encoding done here (The message should be encoded and passed in the fn)
+    user1["connection"] = activeUsers.index(user2);
+    user2["connection"] = activeUsers.index(user1);
+    user1["available"] = user2["available"] = False
+    clients[activeUsers.index(user1)].send(f"Connected with {user2['username']}!".encode('utf-8'))
+    clients[activeUsers.index(user2)].send(f"Connected with {user1['username']}!".encode('utf-8'))
+
+#Sending message
+def sendMessage(message,user):
+    receiver = user["connection"];
+    recieverConnection = clients[receiver];
+    clients[activeUsers.index(user)].send(message.encode('utf-8'));
+    recieverConnection.send(message.encode('utf-8'));
+    
 #Handle fn
-def handle(clientConn):
+def handle(clientConn, user):
     while True:
         try:
-            message = clientConn.recv(1024)
-            print(f"{nicknames[clients.index(clientConn)]} has sent a message ")
-            broadcast(message) # The message will be sent to everyone 
+            message = clientConn.recv(1024).decode()
+            print(f"{activeUsers[activeUsers.index(user)]['username']} has sent a message ")
+            sendMessage(message,user) # The message will be sent to everyone 
         
         except:
-            index = clients.index(clientConn)
             clients.remove(clientConn)
             clientConn.close()
-            nickname = nicknames[index]
-            nicknames.remove(nickname)  
+            activeUsers.remove(user)  
             break
             
 #Receive fn
@@ -38,18 +51,30 @@ def receive():
         clientConnection , clientAddr = server.accept()
         print(f"Connected with {str(clientAddr)} ") #Typecasting incase the address is not a string
         
-        clientConnection.send("NICK".encode('utf-8')) #Used for communication btn the server and the client
-        nickname = clientConnection.recv(1024).decode('utf-8') #1024 bits
+        username = clientConnection.recv(1024).decode('utf-8') #1024 bits
         
-        nicknames.append(nickname)
+        user = {"username":username, "available": True, "connection": None}
+        activeUsers.append(user)
         clients.append(clientConnection)
 
-        print(f"{nickname} has connected ") #Server message 
-        broadcast(f"{nickname} has joined the server \n ".encode("utf-8")) #Broadcasting message
-        clientConnection.send("You have connected to the server".encode('utf-8')) #Client message
+        print(f"{user['username']} has connected ") #Server message 
+        clientConnection.send("Connecting....".encode('utf-8')) 
+
+        found = 0;
+        for u in activeUsers:
+            if((u["username"] != user["username"]) and u["available"]):
+                connectUsers(user, u)
+                if clientConnection.recv(1024).decode("utf-8") == "Approved":
+                    found = 1;
         
-        thread = threading.Thread(target= handle,args=(clientConnection,)) # We use a comma cause we want the arg to be treated as a tuple
-        thread.start()
+        if(found==0):
+            thread = threading.Thread(target= waitForConnection,args=(clientConnection,))
+            thread.start()
+            found = 1
+
+        if(found == 1):
+            thread = threading.Thread(target= handle,args=(clientConnection,user)) # We use a comma cause we want the arg to be treated as a tuple
+            thread.start()
         
 
 print("Server has started running")
