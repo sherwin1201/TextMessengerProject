@@ -1,5 +1,6 @@
 import socket
 import threading
+import threading
 import tkinter
 import tkinter.scrolledtext
 from tkinter import simpledialog
@@ -8,98 +9,96 @@ import re
 HOST = '127.0.0.1' # For online enter public ip address here 
 PORT = 9090  #Open the port on the server site for online
 
-class Client:
-    def __init__(self, host, port):
-        self.sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        self.sock.connect((host,port)) #Connect instead of bind 
-        
-        # GUI part 
-        msg = tkinter.Tk()
-        msg.withdraw()
-        
-        self.nickname = simpledialog.askstring("Nickname"," Please choose a nickname ", parent = msg )
-        #self.sock.send(self.nickname.encode('utf-8'))
-        #print(self.sock.recv(1024).decode('utf-8'))
-        
-        self.gui_done = False # Like a lock that prevents unneccesary starts
-        self.running = True
-        
-        gui_thread = threading.Thread(target=self.gui_loop)  # Gui loop is a fn i,e builds the gui 
-        receive_thread = threading.Thread(target=self.receive) # Deals with the server connection
-        
-        gui_thread.start()
-        receive_thread.start()
-        
-    def gui_loop(self):
-        self.win = tkinter.Tk()
-        self.win.configure(bg="lightgray") #Background
+sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+sock.connect((HOST,PORT)) #Connect instead of bind 
 
-        self.chat_label = tkinter.Label(self.win, text="Chat:",bg="lightgray") #Texts
-        self.chat_label.config(font=("Arial",12)) #Fonts
-        self.chat_label.pack(padx=20, pady=5) #For decoration provides no functionality
-        
-        self.text_area = tkinter.scrolledtext.ScrolledText(self.win)
-        self.text_area.pack(padx=20,pady =5)
-        self.text_area.config(state ='disabled')
-        
-        self.msg_label = tkinter.Label(self.win, text="Message:",bg="lightgray") #Texts
-        self.msg_label.config(font=("Arial",12)) #Fonts
-        self.msg_label.pack(padx=20, pady=5) #For decoration provides no functionality
-        
-        self.input_area = tkinter.Text(self.win,height = 3)
-        self.input_area.pack(padx=20,pady=5)
-        
-        self.send_button = tkinter.Button(self.win, text= "Send", command = self.write)
-        self.send_button.config(font=("Arial",12))
-        self.send_button.pack(padx=20, pady=5)
-        
-        self.gui_done = True
-        self.win.protocol("WM_DELETE_WINDOW",self.stop)  #To terminate the whole program
-        self.win.mainloop()
-        
-    def write(self):        
-        message = f"{self.nickname}: {self.input_area.get('1.0','end')}"  #Can be done on either server or client
+def write():        
+        message = f"{nickname}: {input_area.get('1.0','end')}"  #Can be done on either server or client
         # 1.0 to end means get the whole text
-        self.sock.send(message.encode('utf-8'))
-        self.input_area.delete('1.0','end')
-        
-    def stop(self):
-        self.running = False
-        self.win.destroy()
-        self.sock.close()
-        exit(0)
+        sock.send(message.encode('utf-8'))
+        input_area.delete('1.0','end')
 
-    def receive (self):
-        self.sock.send(self.nickname.encode('utf-8'))
-        print(self.sock.recv(1024).decode('utf-8'))
-        while self.running:
+def stop():
+        if tkinter.messagebox.askokcancel("Notice", "Are you sure you want to close the window?"):
+            running = False
+            win.destroy()
+            sock.close()
+            exit(0)
+
+def receive ():
+        sock.send(nickname.encode('utf-8'))
+        print(sock.recv(1024).decode('utf-8'))
+        while running:
             try:
-                message = self.sock.recv(1024).decode('utf-8')
+                message = sock.recv(1024).decode('utf-8')
                 while True:
-                    if(self.gui_done):
+                    if(gui_done):
                         break;                
                 if re.search("Connected with.*$",message):
-                    if self.gui_done:
-                        self.sock.send("Approved".encode('utf-8'))
-                        self.text_area.config(state= 'normal')
-                        self.text_area.insert('end',message+"\n") #Inserts the message at the end 
-                        self.text_area.yview('end')
-                        self.text_area.config(state= 'disabled')
-                        #self.send_button.config(state = 'normal')
+                    sock.send("Approved".encode('utf-8'))
+                    text_area.config(state= 'normal')
+                    text_area.insert('end',message+"\n") #Inserts the message at the end 
+                    text_area.yview('end')
+                    text_area.config(state= 'disabled')
+                    input_area.config(state="normal")
+                    #send_button.config(state = 'normal')
+                elif re.search(".* has left the chat$",message):
+                    sock.send("Available".encode('utf-8'))
+                    text_area.config(state= 'normal')
+                    text_area.insert('end',message+"\n") #Inserts the message at the end 
+                    text_area.yview('end')
+                    text_area.config(state= 'disabled')
+                    input_area.config(state="normal")
                 else:
-                    if self.gui_done:
-                        self.text_area.config(state= 'normal')
-                        self.text_area.insert('end',message) #Inserts the message at the end 
-                        self.text_area.yview('end')
-                        self.text_area.config(state= 'disabled')
-                        #self.send_button.config(state = 'normal')
+                    text_area.config(state= 'normal')
+                    text_area.insert('end',message) #Inserts the message at the end 
+                    text_area.yview('end')
+                    text_area.config(state= 'disabled')
+                    #send_button.config(state = 'normal')
+                        
             except ConnectionAbortedError:
                 break
             except:
                 print("Error !!")
-                self.sock.close()
-                break                
+                sock.close()
+                break  
+
+# GUI part 
+msg = tkinter.Tk()
+msg.withdraw()
         
-client = Client(HOST,PORT)
+nickname = simpledialog.askstring("Nickname"," Please choose a nickname ", parent = msg )
+        
+gui_done = False
+running = True
 
+win = tkinter.Tk()
+win.configure(bg="lightgray") #Background
 
+chat_label = tkinter.Label(win, text="Chat:",bg="lightgray") #Texts
+chat_label.config(font=("Arial",12)) #Fonts
+chat_label.pack(padx=20, pady=5) #For decoration provides no functionality
+        
+text_area = tkinter.scrolledtext.ScrolledText(win)
+text_area.pack(padx=20,pady =5)
+text_area.config(state ='disabled')
+        
+msg_label = tkinter.Label(win, text="Message:",bg="lightgray") #Texts
+msg_label.config(font=("Arial",12)) #Fonts
+msg_label.pack(padx=20, pady=5) #For decoration provides no functionality
+        
+input_area = tkinter.Text(win,height = 3)
+input_area.config(state="disabled")
+input_area.pack(padx=20,pady=5)
+        
+send_button = tkinter.Button(win, text= "Send", command = write)
+send_button.config(font=("Arial",12))
+send_button.pack(padx=20, pady=5)
+        
+gui_done = True             
+
+receive_thread = threading.Thread(target=receive)
+receive_thread.start()
+
+win.protocol("WM_DELETE_WINDOW",stop)  #To terminate the whole program
+win.mainloop() 
