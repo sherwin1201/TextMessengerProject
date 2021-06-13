@@ -10,6 +10,7 @@ server.listen()
 clients = []
 activeUsers = []
 
+#waiting till connection is found
 def waitForConnection(clientConnection):
     while True:
         if clientConnection.recv(1024).decode("utf-8") == "Approved":
@@ -23,6 +24,19 @@ def connectUsers(user1, user2):   #No encoding done here (The message should be 
     clients[activeUsers.index(user1)].send(f"Connected with {user2['username']}!".encode('utf-8'))
     clients[activeUsers.index(user2)].send(f"Connected with {user1['username']}!".encode('utf-8'))
 
+#Disconnect users
+def disconnectUsers(user1):
+    user2 = activeUsers[user1["connection"]]
+    clients[activeUsers.index(user2)].send(f"{user1['username']} has left the chat".encode('utf-8'))
+    c = clients[activeUsers.index(user1)]
+    clients.remove(clients[activeUsers.index(user1)])
+    c.close()
+    print(len(clients))
+    activeUsers.remove(user1)
+    print(user2["username"]+" is available");
+    user2["connection"] = None
+    user2["available"] = True; 
+
 #Sending message
 def sendMessage(message,user):
     receiver = user["connection"];
@@ -35,15 +49,44 @@ def handle(clientConn, user):
     while True:
         try:
             message = clientConn.recv(1024).decode()
-            print(f"{activeUsers[activeUsers.index(user)]['username']} has sent a message ")
-            sendMessage(message,user) # The message will be sent to everyone 
+            if(message == "Available"):
+                print("Active users after disconneting: ")
+                print(activeUsers);
+                findConnection(clientConn,user)
+                break
+            else:
+                print(f"{activeUsers[activeUsers.index(user)]['username']} has sent a message ")
+                sendMessage(message,user) # The message will be sent to everyone 
         
         except:
-            clients.remove(clientConn)
-            clientConn.close()
-            activeUsers.remove(user)  
-            break
-            
+            if(not user["available"]):
+                print(f"{activeUsers[activeUsers.index(user)]['username']} has disconnected  ")
+                disconnectUsers(user)
+                break
+            else:
+                print("Hello")
+                clients.remove(clientConn)
+                clientConn.close()
+                activeUsers.remove(user)  
+                break
+
+def findConnection(clientConnection, user):
+        print(user["username"]+" entered thread")
+        found = 0;
+        for u in activeUsers:
+            if((u["username"] != user["username"]) and u["available"]):
+                connectUsers(user, u)
+                if clientConnection.recv(1024).decode("utf-8") == "Approved":
+                    found = 1;
+        
+        if(found==0):
+            waitForConnection(clientConnection)
+            found = 1
+
+        if(found == 1):
+            handle(clientConnection,user)  
+
+
 #Receive fn
 def receive():
     #Also can use signals acc to priority
@@ -60,22 +103,10 @@ def receive():
         print(f"{user['username']} has connected ") #Server message 
         clientConnection.send("Connecting....".encode('utf-8')) 
 
-        found = 0;
-        for u in activeUsers:
-            if((u["username"] != user["username"]) and u["available"]):
-                connectUsers(user, u)
-                if clientConnection.recv(1024).decode("utf-8") == "Approved":
-                    found = 1;
-        
-        if(found==0):
-            thread = threading.Thread(target= waitForConnection,args=(clientConnection,))
-            thread.start()
-            found = 1
-
-        if(found == 1):
-            thread = threading.Thread(target= handle,args=(clientConnection,user)) # We use a comma cause we want the arg to be treated as a tuple
-            thread.start()
-        
+        print("Active users: ")
+        print(activeUsers);
+        findThread = threading.Thread(target= findConnection,args=(clientConnection,user))
+        findThread.start();        
 
 print("Server has started running")
 receive()
