@@ -254,34 +254,39 @@ def DecryptAES(message, key):
     
     return state; 
 
+#########################################################
+def decrypt(m):
+    # encryptedMessage = [
+    #     '0xb6', '0x4b', '0x27', '0xbb', '0x16', '0x15', '0xa6', '0xf5',
+    #     '0x32', '0x18', '0x6c', '0xc5', '0xfa', '0x94', '0xb5', '0x5e',
+    #     '0x5c', '0x54', '0xea', '0x1b', '0xdf', '0x97', '0x1e', '0x3d',
+    #     '0xe3', '0x1b', '0xfc', '0x2', '0x75', '0x22', '0x76', '0x52',
+    #     '0xd5', '0x7b', '0xd5', '0x42', '0xba', '0xf', '0x68', '0x50',
+    #     '0xcd', '0xfd', '0x59', '0xb8', '0xeb', '0xe', '0x83', '0xd1',
+    #     ]
 
-encryptedMessage = [
-    '0xb6', '0x4b', '0x27', '0xbb', '0x16', '0x15', '0xa6', '0xf5',
-    '0x32', '0x18', '0x6c', '0xc5', '0xfa', '0x94', '0xb5', '0x5e',
-    '0x5c', '0x54', '0xea', '0x1b', '0xdf', '0x97', '0x1e', '0x3d',
-    '0xe3', '0x1b', '0xfc', '0x2', '0x75', '0x22', '0x76', '0x52',
-    '0xd5', '0x7b', '0xd5', '0x42', '0xba', '0xf', '0x68', '0x50',
-    '0xcd', '0xfd', '0x59', '0xb8', '0xeb', '0xe', '0x83', '0xd1',
-    ]
+    encryptedMessage = m.split()
 
-key = [
-    1, 2, 3, 4,
-    5, 6, 7, 8,
-    9, 10, 11, 12,
-    13, 14, 15, 16
-    ];
+    key = [
+        1, 2, 3, 4,
+        5, 6, 7, 8,
+        9, 10, 11, 12,
+        13, 14, 15, 16
+        ];
 
-#Converting key to hex values for easier calculation
-for i in range(len(key)):
-    key[i] = hex(key[i]);
+    #Converting key to hex values for easier calculation
+    for i in range(len(key)):
+        key[i] = hex(key[i]);
 
-messageLength = len(encryptedMessage);
-decryptedMessage = [None]*messageLength;
+    messageLength = len(encryptedMessage);
+    decryptedMessage = [None]*messageLength;
 
-for i in range(0,messageLength,16):
-    decryptedMessage[i:i+16] = DecryptAES(encryptedMessage[i:i+16], key);
-    for j in range(16):
-        decryptedMessage[i+j] = chr(int(decryptedMessage[i+j],16));
+    for i in range(0,messageLength,16):
+        decryptedMessage[i:i+16] = DecryptAES(encryptedMessage[i:i+16], key);
+        for j in range(16):
+            decryptedMessage[i+j] = chr(int(decryptedMessage[i+j],16));
 
-decryptedMessage = "".join(decryptedMessage);
-print(decryptedMessage);
+    decryptedMessage = "".join(decryptedMessage);
+    print(decryptedMessage);
+
+    return decryptedMessage;
