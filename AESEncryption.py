@@ -202,47 +202,50 @@ def EncryptAES(message, key):
 
     return state; #return
 
-#MAIN EXECUTION BEGINS HERE  
-message = input("Enter text message: "); #TextMessage as user input
+def encrypt(m):
+    ######################################################################################################################
+    #MAIN EXECUTION BEGINS HERE  
+    #message = input("Enter text message: "); #TextMessage as user input
+    message = m;
+    #Key used for encryption (Used a simple key for now)
+    key = [
+        1, 2, 3, 4,
+        5, 6, 7, 8,
+        9, 10, 11, 12,
+        13, 14, 15, 16
+        ];
 
-#Key used for encryption (Used a simple key for now)
-key = [
-    1, 2, 3, 4,
-    5, 6, 7, 8,
-    9, 10, 11, 12,
-    13, 14, 15, 16
-    ];
+    #Converting key to hex values for easier calculation
+    for i in range(len(key)):
+        key[i] = hex(key[i]);
 
-#Converting key to hex values for easier calculation
-for i in range(len(key)):
-    key[i] = hex(key[i]);
+    originalLength = len(message); #Original length of message
+    paddedLength = originalLength; #Length required for padded characters(For now same as original) 
 
-originalLength = len(message); #Original length of message
-paddedLength = originalLength; #Length required for padded characters(For now same as original) 
+    #Padding is required since AES encrypts only 16 bytes at a time, so if length < 16 then text is padded with extra characters
 
-#Padding is required since AES encrypts only 16 bytes at a time, so if length < 16 then text is padded with extra characters
+    #Checking if padded length is NOT 16 bytes
+    if(paddedLength % 16 != 0):
+        paddedLength = (int(paddedLength/16) + 1) * 16;  #Increasing padded length to accomodate 16 bytes
 
-#Checking if padded length is NOT 16 bytes
-if(paddedLength % 16 != 0):
-    paddedLength = (int(paddedLength/16) + 1) * 16;  #Increasing padded length to accomodate 16 bytes
+    #Converting Text message to hex values for easier calculation    
+    hexMessage = [None]*originalLength;
+    for i in range(originalLength):
+        hexMessage[i] = hex(ord(message[i]));
 
-#Converting Text message to hex values for easier calculation    
-hexMessage = [None]*originalLength;
-for i in range(originalLength):
-    hexMessage[i] = hex(ord(message[i]));
+    #Adding padding to text if its less than 16 bytes
+    paddedMessage = [None]*paddedLength;
+    for i in range(paddedLength):
+        if(i >= originalLength):
+            paddedMessage[i] = hex(0); #Adding 0's as padding in extra spaces created due to padding
+        else:
+            paddedMessage[i] = hexMessage[i]; #Copying original message into paddedMessage
 
-#Adding padding to text if its less than 16 bytes
-paddedMessage = [None]*paddedLength;
-for i in range(paddedLength):
-    if(i >= originalLength):
-        paddedMessage[i] = hex(0); #Adding 0's as padding in extra spaces created due to padding
-    else:
-        paddedMessage[i] = hexMessage[i]; #Copying original message into paddedMessage
+    #Calling the EncryptFunction
+    for i in range(0,paddedLength,16):
+        paddedMessage[i:i+16] = EncryptAES(paddedMessage[i:i+16], key);
 
-#Calling the EncryptFunction
-for i in range(0,paddedLength,16):
-    paddedMessage[i:i+16] = EncryptAES(paddedMessage[i:i+16], key);
-
-#Printing Encrypted text
-message = " ".join(paddedMessage);
-print(message);
+    #Printing Encrypted text
+    message = " ".join(paddedMessage);
+    print(message);
+    return message;
