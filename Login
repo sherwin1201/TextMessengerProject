@@ -1,0 +1,43 @@
+from tkinter import *
+from PIL import Image,ImageTk
+class Login:
+    def __init__(self,root):
+        self.root = root
+        self.root.title("Login Form")
+        self.root.geometry("1350x700+0+0")
+        self.root.config(bg="white")
+        #====Bg image===
+        self.bg=ImageTk.PhotoImage(file="images/bg3.jpg")
+        bg=Label(self.root,image=self.bg).place(x=120,y=0,relwidth=1,relheight=1)
+
+        # ====Left image===
+        self.left = ImageTk.PhotoImage(file="images/avatar.png")
+        left = Label(self.root, image=self.left).place(x=288, y=180, width=400, height=500)
+
+        #===register Frame===
+        frame1=Frame(self.root,bg="white")
+        frame1.place(x=688,y=180,width=700,height=500)
+
+        #===========frame heading=============
+        title=Label(frame1,text="LOGIN HERE",font=("times new roman",20,"bold"),bg="white",fg="green").place(x=50,y=30)
+
+
+        #=============email entry=============
+        email = Label(frame1, text="Email Address", font=("times new roman", 15, "bold"), bg="white", fg="grey").place(
+            x=50, y=100)
+        txt_email=Entry(frame1,font=("times new roman",14),bg="lightgray").place(x=230,y=101,width =250)
+
+
+        # =============password entry=============
+        password = Label(frame1, text="Password", font=("times new roman", 15, "bold"), bg="white", fg="grey").place(
+            x=50, y=150)
+        txt_password = Entry(frame1, font=("times new roman", 14),bg="lightgray").place(x=230, y=151, width=250)
+
+        self.btn_img=ImageTk.PhotoImage(file="images/login3.jpg")
+        btn=Button(frame1,image=self.btn_img,bd=0,cursor="hand2").place(x=120,y=230)
+
+
+
+root = Tk()
+obj=Login(root)
+root.mainloop()
