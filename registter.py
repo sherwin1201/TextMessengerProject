@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import ttk,messagebox #for a drop down menu
 from PIL import Image,ImageTk #to deal with images image tk deals with jpg format
 import pymysql
+
 class Register:
     def __init__(self,root):
         #setting the geometry of everything
@@ -86,7 +87,7 @@ class Register:
         self.btnimg=ImageTk.PhotoImage(file='images/masterb.jpg')
         btn_register = Button(frame1,image=self.btnimg,bd=0,cursor="hand2",command = self.register_data).place(x=80,y=385)
         
-        btn_login = Button(self.root,text="Sign In ",font=("times new roman",20),bd=0,cursor="hand2").place(x=360,y=550)
+        btn_login = Button(self.root,text="Sign In ",command = self.signin ,font=("times new roman",20),bd=0,cursor="hand2").place(x=360,y=550)
     def clear(self):
         self.txt_fname.delete(0,END)
         self.txt_lname.delete(0,END)
@@ -112,7 +113,7 @@ class Register:
             
             
           if  self.drop_men.get()=="Select" or self.txt_answer.get() == "":
-            s
+        
             messagebox.showerror("Error","All fields are required",parent=self.root)
             
           if  self.txt_passwrd.get() ==" " or  self.txt_conpasswrd.get() == " ":
@@ -143,17 +144,11 @@ class Register:
      
             except Exception as es:
                 messagebox.showerror("Error",f"Error due to:{str(es)} ",parent=self.root)
-            
-            
-             
-            
-            
-    
-             
-        
-        
-            
-            
+
+    def signin(self):
+      root.destroy()
+      import Login2;
+                 
 root = Tk() # object of tk
 obj=Register(root) #object of the cclass Register 
 root.mainloop()
