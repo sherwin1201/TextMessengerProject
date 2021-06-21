@@ -140,7 +140,7 @@ class Register:
                     con.commit()
                     con.close()
                     messagebox.showinfo("Success","Registration Successful",parent=self.root)
-                    config.nickname = self.txt_mail.get()
+                    config.nickname = self.txt_fname.get()
                     self.clear()
                     self.root.destroy()
                 

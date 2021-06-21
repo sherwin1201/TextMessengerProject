@@ -19,7 +19,7 @@ class Login:
                     messagebox.showerror("Error", "Invalid Username and Password", parent=self.root)
                 else:
                     messagebox.showinfo("Login Success", "Welcome User!!", parent=self.root)
-                    config.nickname = self.txt_email.get()
+                    config.nickname = row[1]
                     self.root.destroy()
 
             except Exception as es:
