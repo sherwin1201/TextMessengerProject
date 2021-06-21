@@ -56,6 +56,7 @@ def handle(clientConn, user):
                 break
             else:
                 print(f"{activeUsers[activeUsers.index(user)]['username']} has sent a message ")
+                print(message)
                 sendMessage(message,user) # The message will be sent to everyone 
         
         except:
