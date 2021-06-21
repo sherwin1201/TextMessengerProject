@@ -5,6 +5,8 @@ import tkinter
 import tkinter.scrolledtext
 from tkinter import simpledialog
 import re
+import AESEncryption
+import AESDecryption;
 
 HOST = '127.0.0.1' # For online enter public ip address here 
 PORT = 9090  #Open the port on the server site for online
@@ -15,7 +17,8 @@ sock.connect((HOST,PORT)) #Connect instead of bind
 def write():        
         message = f"{nickname}: {input_area.get('1.0','end')}"  #Can be done on either server or client
         # 1.0 to end means get the whole text
-        sock.send(message.encode('utf-8'))
+        encryptedMessage = AESEncryption.encrypt(message);
+        sock.send(encryptedMessage.encode('utf-8'))
         input_area.delete('1.0','end')
 
 def stop():
@@ -48,10 +51,11 @@ def receive ():
                     text_area.insert('end',message+"\n") #Inserts the message at the end 
                     text_area.yview('end')
                     text_area.config(state= 'disabled')
-                    input_area.config(state="normal")
+                    input_area.config(state="disabled")
                 else:
+                    decryptedMessage = AESDecryption.decrypt(message);
                     text_area.config(state= 'normal')
-                    text_area.insert('end',message) #Inserts the message at the end 
+                    text_area.insert('end',decryptedMessage) #Inserts the message at the end 
                     text_area.yview('end')
                     text_area.config(state= 'disabled')
                     #send_button.config(state = 'normal')
