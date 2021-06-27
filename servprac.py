@@ -1,5 +1,7 @@
 import socket
 import threading
+import re
+import pickle
 
 HOST ='127.0.0.1'  # If running online entire own (private) ip address 
 PORT = 9090
@@ -21,13 +23,15 @@ def connectUsers(user1, user2):   #No encoding done here (The message should be 
     user1["connection"] = activeUsers.index(user2);
     user2["connection"] = activeUsers.index(user1);
     user1["available"] = user2["available"] = False
-    clients[activeUsers.index(user1)].send(f"Connected with {user2['username']}!".encode('utf-8'))
-    clients[activeUsers.index(user2)].send(f"Connected with {user1['username']}!".encode('utf-8'))
+    messageData1 = (f"Connected with {user2['username']}!", user2["publickey"])
+    messageData2 = (f"Connected with {user1['username']}!", user1["publickey"])
+    clients[activeUsers.index(user1)].send(pickle.dumps(messageData1))
+    clients[activeUsers.index(user2)].send(pickle.dumps(messageData2))
 
 #Disconnect users
 def disconnectUsers(user1):
     user2 = activeUsers[user1["connection"]]
-    clients[activeUsers.index(user2)].send(f"{user1['username']} has left the chat".encode('utf-8'))
+    clients[activeUsers.index(user2)].send(pickle.dumps(f"{user1['username']} has left the chat"))
     c = clients[activeUsers.index(user1)]
     clients.remove(clients[activeUsers.index(user1)])
     c.close()
@@ -41,8 +45,8 @@ def disconnectUsers(user1):
 def sendMessage(message,user):
     receiver = user["connection"];
     recieverConnection = clients[receiver];
-    clients[activeUsers.index(user)].send(message.encode('utf-8'));
-    recieverConnection.send(message.encode('utf-8'));
+    recieverConnection.send(pickle.dumps(message))
+    clients[activeUsers.index(user)].send(pickle.dumps(message))
     
 #Handle fn
 def handle(clientConn, user):
@@ -65,7 +69,6 @@ def handle(clientConn, user):
                 disconnectUsers(user)
                 break
             else:
-                print("Hello")
                 clients.remove(clientConn)
                 clientConn.close()
                 activeUsers.remove(user)  
@@ -95,9 +98,12 @@ def receive():
         clientConnection , clientAddr = server.accept()
         print(f"Connected with {str(clientAddr)} ") #Typecasting incase the address is not a string
         
-        username = clientConnection.recv(1024).decode('utf-8') #1024 bits
-        
-        user = {"username":username, "available": True, "connection": None}
+        userdata = pickle.loads(clientConnection.recv(1024))
+        username = userdata[0]
+        publicKey = userdata[1]
+        print(username,publicKey)
+
+        user = {"username":username, "available": True, "connection": None, "publickey": publicKey}
         activeUsers.append(user)
         clients.append(clientConnection)
 

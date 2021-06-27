@@ -202,22 +202,20 @@ def EncryptAES(message, key):
 
     return state; #return
 
-def encrypt(m):
+def encrypt(m,key):
     ######################################################################################################################
     #MAIN EXECUTION BEGINS HERE  
     #message = input("Enter text message: "); #TextMessage as user input
     message = m;
-    #Key used for encryption (Used a simple key for now)
-    key = [
-        1, 2, 3, 4,
-        5, 6, 7, 8,
-        9, 10, 11, 12,
-        13, 14, 15, 16
-        ];
+    k = []
+    
+    for i in key: 
+        k.append(i)
+    #key = k;
 
     #Converting key to hex values for easier calculation
-    for i in range(len(key)):
-        key[i] = hex(key[i]);
+    for i in range(len(k)):
+        k[i] = hex(k[i]);
 
     originalLength = len(message); #Original length of message
     paddedLength = originalLength; #Length required for padded characters(For now same as original) 
@@ -243,7 +241,7 @@ def encrypt(m):
 
     #Calling the EncryptFunction
     for i in range(0,paddedLength,16):
-        paddedMessage[i:i+16] = EncryptAES(paddedMessage[i:i+16], key);
+        paddedMessage[i:i+16] = EncryptAES(paddedMessage[i:i+16], k);
 
     #Printing Encrypted text
     message = " ".join(paddedMessage);

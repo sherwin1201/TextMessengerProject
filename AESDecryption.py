@@ -255,7 +255,7 @@ def DecryptAES(message, key):
     return state; 
 
 #########################################################
-def decrypt(m):
+def decrypt(m,key):
     # encryptedMessage = [
     #     '0xb6', '0x4b', '0x27', '0xbb', '0x16', '0x15', '0xa6', '0xf5',
     #     '0x32', '0x18', '0x6c', '0xc5', '0xfa', '0x94', '0xb5', '0x5e',
@@ -266,23 +266,19 @@ def decrypt(m):
     #     ]
 
     encryptedMessage = m.split()
-
-    key = [
-        1, 2, 3, 4,
-        5, 6, 7, 8,
-        9, 10, 11, 12,
-        13, 14, 15, 16
-        ];
-
+    k = []
+    for i in key:
+        k.append(i);
+        
     #Converting key to hex values for easier calculation
-    for i in range(len(key)):
-        key[i] = hex(key[i]);
+    for i in range(len(k)):
+        k[i] = hex(k[i]);
 
     messageLength = len(encryptedMessage);
     decryptedMessage = [None]*messageLength;
 
     for i in range(0,messageLength,16):
-        decryptedMessage[i:i+16] = DecryptAES(encryptedMessage[i:i+16], key);
+        decryptedMessage[i:i+16] = DecryptAES(encryptedMessage[i:i+16], k);
         for j in range(16):
             decryptedMessage[i+j] = chr(int(decryptedMessage[i+j],16));
 
